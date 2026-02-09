@@ -1,0 +1,27 @@
+[Vulnerability Report]
+Challenge: Business Logic Flaw (Negative Transfer)
+Severity: High
+Status: Confirmed
+
+[Description]
+The Financial Operations module (`transfer` function in `api.php`) fails to validate that the transaction amount is a positive number. Additionally, the logging logic for the "Investment Vault" destination is flawed, as it only records positive legitimate transfers while the source "Checking Account" accepts negative inputs. This allows users to generate infinite funds.
+
+[Exploitation Steps]
+1. Observe the "Transfer Funds" input in the Finance Panel.
+2. Attempt to transfer a negative amount (e.g., -1000) via UI or API.
+   Payload: `{"amount": -1000}`
+3. Analyze the result:
+   - Server logic: `CheckingBalance -= Amount` -> `CheckingBalance -= (-1000)` -> `CheckingBalance + 1000`.
+   - Logging logic: `if (amount > 0) log()` -> Negative amount is ignored.
+   - Net Result: Checking Account increases by 1000; Vault remains unchanged.
+4. Use the newly generated "fake" funds to perform a legitimate positive transfer (e.g., 200) to the Vault.
+5. Once Vault Balance >= 200, purchase the "Premium Audit Report".
+
+[Finding]
+The purchased report contains the flag:
+Reference: flag{r4c3_c0nd1t10n_m4st3r}
+
+[Remediation]
+1. Implement strict input validation: `if ($amount <= 0) return error;`.
+2. Use database transactions (ACID) instead of file-based storage to ensure consistency.
+3. Validate that source and destination accounts always balance out (Double-entry bookkeeping).

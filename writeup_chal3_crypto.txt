@@ -1,0 +1,27 @@
+[Vulnerability Report]
+Challenge: Distributed Secret Fragments (Crypto Misuse)
+Severity: Medium
+Status: Confirmed
+
+[Description]
+The application distributes sensitive configuration fragments across multiple disparate API endpoints. These fragments are obfuscated using a custom encoding scheme (Base64 + ROT13) but are delivered to client-side code where they can be intercepted and reconstructed.
+
+[Exploitation Steps]
+1. Intercept Network Traffic (Developer Tools -> Network) while browsing the app.
+2. Identify anomalous fields in JSON responses:
+   - `get_balance`: `debug_trace_id` = "QVJLTEZf"
+   - `get_admin_logs`: `sync_ver` = "UEJSRV8="
+   - `admin_debug` (Requires Admin): `ref_pointer` = "WFJMXzc3"
+3. Reverse the Encoding Scheme (Base64 Decode -> ROT13):
+   - "QVJLTEZf" -> "ARKHF_" -> "NEXUS_"
+   - "UEJSRV8=" -> "PBRE_" -> "CORE_"
+   - "WFJMXzc3" -> "XRL_77" -> "KEY_77"
+4. Reassemble the Master Key: "NEXUS_CORE_KEY_77".
+5. Submit this key to the "System Config" panel validation endpoint.
+
+[Finding]
+The system validates the key and returns the configuration hash:
+HASH: flag{crypt0_fr4gm3nt_m1sus3}
+
+[Remediation]
+Never send partial secrets or unused "debug" data to the client. Validate configurations purely server-side. Remove all hardcoded encoding logic from the frontend transparency layer.

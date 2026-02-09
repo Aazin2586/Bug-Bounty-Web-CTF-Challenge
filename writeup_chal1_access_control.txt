@@ -1,0 +1,23 @@
+[Vulnerability Report]
+Challenge: Broken Access Control (DOM Logic)
+Severity: Critical
+Status: Confirmed
+
+[Description]
+The "Administration Console" functionality is hidden only by client-side JavaScript (`style="display: none;"`). The backend API endpoint (`/api.php?action=get_admin_logs`) does not enforce role-based access control (RBAC), allowing any authenticated user (including guests) to retrieve sensitive logs.
+
+[Exploitation Steps]
+1. Log in to the application as a Guest.
+2. Open Browser Developer Tools (F12).
+3. Inspect the sidebar navigation. Locate the hidden `#nav-admin` element.
+4. Remove `style="display: none;"` (or run `app.nav('admin')` in the Console).
+5. Click the "Administration" button.
+6. The application fetches `/api.php?action=get_admin_logs`.
+7. Observe the "System Activity Logs" panel.
+
+[Finding]
+The logs contain a critical information leak:
+"Emergency Patch Applied: flag{d0m_l0g1c_byp4ss}"
+
+[Remediation]
+Implement strict server-side role validation. The `get_admin_logs` endpoint must verify the user's role (e.g., `if ($user['role'] !== 'admin') die()`) before executing any logic or returning data. Client-side hiding is security through obscurity and is ineffective.
