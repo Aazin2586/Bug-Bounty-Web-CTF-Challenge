@@ -7,7 +7,7 @@ error_reporting(0); // Production mode simulation
 // ---------------------------------------------------------
 // JWT Secret - WEAK for purpose of challenge finding it via dictionary attack or just standard 'secret'
 // Actually, let's allow 'none' algorithm for the vulnerability flag{jw7_st0r4g3_3xp0s3d}
-$JWT_SECRET = "nexus_secret_2024"; 
+$JWT_SECRET = "secret"; 
 
 // Flags
 $FLAGS = [
@@ -57,8 +57,9 @@ function verifyJWT($token) {
     $signature_provided = $parts[2];
 
     // VULNERABILITY 2: Algorithm confusion / None algorithm
-    if (strtolower($header['alg']) === 'none') {
-        return $payload; // Accept without signature check
+    // VULNERABILITY: Allow empty signature OR none algorithm
+    if (empty($signature_provided) || strtolower($header['alg']) === 'none') {
+        return $payload; 
     }
     
     // Check signature

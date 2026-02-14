@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus Enterprise Dashboard</title>
+    <!-- Inspect Flag : flag{y0u_4r3_pr3tty_g00d} -->
     <style>
         :root {
             --bg-dark: #0f172a;
@@ -39,6 +40,24 @@
             display: flex;
             flex-direction: column;
             padding: 1.5rem;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .sidebar-footer a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .sidebar-footer a:hover {
+            color: var(--accent);
         }
 
         .brand {
@@ -227,6 +246,12 @@
         <div class="nav-item" onclick="app.nav('settings')">
             <span>⚙️</span> System Config
         </div>
+
+        <div class="sidebar-footer">
+            <div style="margin-bottom: 0.25rem;">System Architects:</div>
+            <a href="https://github.com/Aazin2586" target="_blank">@Aazin2586</a> & 
+            <a href="https://github.com/44pathan" target="_blank">@44pathan</a>
+        </div>
     </div>
 
     <div class="main">
@@ -325,6 +350,10 @@
 
                 <button onclick="app.verifyConfig()">Verify Configuration</button>
                 <div id="config-log" class="terminal">System Ready.</div>
+
+                <hr style="margin: 2rem 0; border: 0; border-top: 1px solid var(--border);">
+                <h3 style="color: var(--danger); margin-bottom: 1rem;">Danger Zone</h3>
+                <button class="danger" onclick="app.resetChallenge()">Reset Challenge Environment</button>
             </div>
 
         </div>
@@ -491,6 +520,17 @@
                 } else {
                     log.innerText = "VERIFICATION FAILED: " + (data.error || "Invalid Key");
                 }
+            },
+
+            async resetChallenge() {
+                if(!confirm('This will wipe all progress and local data. Continue?')) return;
+                
+                try {
+                    await fetch('reset.php');
+                } catch(e) { console.error('Reset fetch failed', e); }
+                
+                localStorage.clear();
+                location.reload();
             }
         };
 
