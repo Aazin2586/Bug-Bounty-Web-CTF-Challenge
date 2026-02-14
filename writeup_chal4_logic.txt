@@ -3,6 +3,13 @@ Challenge: Business Logic Flaw (Negative Transfer)
 Severity: High
 Status: Confirmed
 
+[Question]
+The "Premium Audit Report" is strictly for high-net-worth accounts. Is there a way to acquire it without actually having the funds?
+
+[Hints]
+1. The application checks if you have enough funds, but does it validate the input amount properly?
+2. Math can be tricky when negative numbers are involved in a subtraction.
+
 [Description]
 The Financial Operations module (`transfer` function in `api.php`) fails to validate that the transaction amount is a positive number. Additionally, the logging logic for the "Investment Vault" destination is flawed, as it only records positive legitimate transfers while the source "Checking Account" accepts negative inputs. This allows users to generate infinite funds.
 
